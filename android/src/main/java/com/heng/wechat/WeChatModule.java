@@ -282,7 +282,6 @@ public class WeChatModule extends ReactContextBaseJavaModule {
                     }
                     if (bitmap != null) {
                         Bitmap thumbBmp = Bitmap.createScaledBitmap(bitmap, thumbSize, thumbSize, true);
-                        bitmap.recycle();
                         msg.thumbData = bmpToByteArray(thumbBmp, true);
                     }
 
