@@ -281,7 +281,17 @@ public class WeChatModule extends ReactContextBaseJavaModule {
                         msg.mediaTagName = tagName;
                     }
                     if (bitmap != null) {
-                        Bitmap thumbBmp = Bitmap.createScaledBitmap(bitmap, thumbSize, thumbSize, true);
+                        int outWidth, outHeight;
+                        int inWidth = bitmap.getWidth();
+                        int inHeight = bitmap.getHeight();
+                        if(inWidth > inHeight){
+                            outWidth = thumbSize;
+                            outHeight = (inHeight * thumbSize) / inWidth; 
+                        } else {
+                            outHeight = thumbSize;
+                            outWidth = (inWidth * thumbSize) / inHeight; 
+                        }
+                        Bitmap thumbBmp = Bitmap.createScaledBitmap(bitmap, outWidth, outHeight, true);
                         msg.thumbData = bmpToByteArray(thumbBmp, true);
                     }
 
@@ -375,12 +385,21 @@ public class WeChatModule extends ReactContextBaseJavaModule {
      */
     private byte[] bmpToByteArray(Bitmap bmp, boolean needRecycle) {
         ByteArrayOutputStream output = new ByteArrayOutputStream();
-        bmp.compress(Bitmap.CompressFormat.PNG, 100, output);
-        if (needRecycle) {
-            bmp.recycle();
-        }
         byte[] result = output.toByteArray();
         try {
+            int options = 100;
+            final int IMAGE_SIZE = 32768;
+            bmp.compress(Bitmap.CompressFormat.PNG, options, output);
+            result = output.toByteArray();
+            while (result.length > IMAGE_SIZE && options != 10) {
+                output.reset(); //清空baos
+                bmp.compress(Bitmap.CompressFormat.JPEG, options, output);
+                options -= 10;
+                result = output.toByteArray();
+            }
+            if (needRecycle) {
+                bmp.recycle();
+            }
             output.close();
         } catch (Exception e) {
             e.printStackTrace();
